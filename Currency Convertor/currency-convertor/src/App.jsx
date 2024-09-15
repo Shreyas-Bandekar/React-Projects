@@ -1,29 +1,36 @@
-import { useState } from 'react'
-import { InputBox } from './components'
-import useCurrencyInfo from './hooks/useCurrencyInfo'
-
+import { useState, useEffect } from 'react';
+import { InputBox } from './components';
+import useCurrencyInfo from './hooks/useCurrencyInfo';
 
 function App() {
+    const [amount, setAmount] = useState(0);
+    const [from, setFrom] = useState("usd");
+    const [to, setTo] = useState("inr");
+    const [convertedAmount, setConvertedAmount] = useState(0);
 
-    const [amount, setAmount] = useState(0)
-    const [from, setFrom] = useState("usd")
-    const [to, setTo] = useState("inr")
-    const [convertedAmount, setConvertedAmount] = useState(0)
+    const currencyInfo = useCurrencyInfo(from);
 
-    const currencyInfo = useCurrencyInfo(from)
+    // Recalculate convertedAmount whenever amount or from or to changes
+    useEffect(() => {
+        if (currencyInfo[to]) {
+            setConvertedAmount(amount * currencyInfo[to]);
+        }
+    }, [amount, from, to, currencyInfo]);
 
-    const options = Object.keys(currencyInfo)
+    const options = Object.keys(currencyInfo);
 
     const swap = () => {
-        setFrom(to)
-        setTo(from)
-        setConvertedAmount(amount)
-        setAmount(convertedAmount)
-    }
+        setFrom(to);
+        setTo(from);
+    };
 
-    const convert = () => {
-        setConvertedAmount(amount * currencyInfo[to])
-    }
+    const handleFromCurrencyChange = (currency) => {
+        setFrom(currency);
+    };
+
+    const handleToCurrencyChange = (currency) => {
+        setTo(currency);
+    };
 
     return (
         <div
@@ -37,8 +44,6 @@ function App() {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                            convert()
-
                         }}
                     >
                         <div className="w-full mb-1">
@@ -46,7 +51,7 @@ function App() {
                                 label="From"
                                 amount={amount}
                                 currencyOptions={options}
-                                onCurrencyChange={(currency) => setAmount(amount)}
+                                onCurrencyChange={handleFromCurrencyChange}
                                 selectCurrency={from}
                                 onAmountChange={(amount) => setAmount(amount)}
                             />
@@ -65,8 +70,8 @@ function App() {
                                 label="To"
                                 amount={convertedAmount}
                                 currencyOptions={options}
-                                onCurrencyChange={(currency) => setTo(currency)}
-                                selectCurrency={from}
+                                onCurrencyChange={handleToCurrencyChange}
+                                selectCurrency={to}
                                 amountDisable
                             />
                         </div>
@@ -80,4 +85,4 @@ function App() {
     );
 }
 
-export default App
+export default App;
